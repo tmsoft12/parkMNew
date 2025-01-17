@@ -1,0 +1,222 @@
+basePath: /api/v1
+definitions:
+  carcontrol.ErrorResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  carcontrol.GetCarsResponse:
+    properties:
+      cars:
+        items:
+          $ref: '#/definitions/modelscar.Car_Model'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  modelscar.Car_Model:
+    properties:
+      car_number:
+        type: string
+      duration:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      park_no:
+        type: string
+      reason:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      total_payment:
+        type: number
+      user_id:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  title: Airline API
+paths:
+  /createcar:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new car entering the parking lot
+      parameters:
+      - description: Parking spot number
+        in: query
+        name: parkno
+        required: true
+        type: string
+      - description: Car details
+        in: body
+        name: car
+        required: true
+        schema:
+          $ref: '#/definitions/modelscar.Car_Model'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created car details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request or car already inside
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+        "500":
+          description: Database error
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+      summary: Create a new car entry
+      tags:
+      - cars
+  /getallcars:
+    get:
+      consumes:
+      - application/json
+      description: Get list of cars with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Parking spot number
+        in: query
+        name: parkno
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/carcontrol.GetCarsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+      summary: Get list of cars
+      tags:
+      - cars
+  /getcar/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a car by ID
+      parameters:
+      - description: Car ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/modelscar.Car_Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+      summary: Get a car by ID
+      tags:
+      - cars
+  /searchcar:
+    get:
+      consumes:
+      - application/json
+      description: Search for a car by plate number, parking number, and other optional
+        filters
+      parameters:
+      - description: Car plate number
+        in: query
+        name: car_number
+        type: string
+      - description: Parking spot number
+        in: query
+        name: parkno
+        type: string
+      - description: Car status (Inside, Exited)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/carcontrol.GetCarsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+      summary: Search for a car by plate number and optional filters
+      tags:
+      - cars
+  /updatecar/{plate}:
+    put:
+      consumes:
+      - application/json
+      description: Updates a car's status and calculates payment and duration based
+        on start and end times.
+      parameters:
+      - description: Car plate number
+        in: path
+        name: plate
+        required: true
+        type: string
+      - description: Car details to update
+        in: body
+        name: car
+        required: true
+        schema:
+          $ref: '#/definitions/modelscar.Car_Model'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated car details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Car already exited or invalid request
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+        "404":
+          description: Car not found
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+        "500":
+          description: Error parsing time
+          schema:
+            $ref: '#/definitions/carcontrol.ErrorResponse'
+      summary: Update a car by plate number
+      tags:
+      - cars
+swagger: "2.0"

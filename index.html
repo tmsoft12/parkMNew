@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Notification System</title>
+    <style>
+        .notificationmodal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 9px;
+        }
+
+        .notificationmodal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .notification-details {
+            margin-top: 20px;
+        }
+
+        .notification-details p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="notificationmodal">
+        <div class="notificationmodal-content">
+        </div>
+    </div>
+
+    <script>
+        const websocket = new WebSocket('ws://localhost:3000/api/v1/ws/notification');
+
+        websocket.onopen = function () {
+            console.log('Connected to WebSocket server');
+        };
+
+        websocket.onmessage = function (event) {
+            console.log('Message received: ' + event.data);
+            const notification = JSON.parse(event.data);
+            const modal = document.querySelector('.notificationmodal');
+            const modalContent = document.querySelector('.notificationmodal-content');
+            const close = document.querySelector('.close');
+            if (notification.status === 'Inside') {
+                modalContent.style.backgroundColor = '#f0f8ff';
+            } else if (notification.status === 'Exited') {
+                notification.status = 'Cykdy';
+            }
+            modal.style.display = 'block';
+            modalContent.innerHTML = `
+                <span class="close">&times;</span>
+                <h2>Parking Notification</h2>
+                <div class="notification-details">
+                    <p><strong>Car Number:</strong> ${notification.car_number}</p>
+                    <p><strong>Status:</strong> ${notification.status}</p>
+                    <p><strong>Start Time:</strong> ${notification.start_time}</p>
+                    <p><strong>End Time:</strong> ${notification.end_time}</p>
+                    <p><strong>Duration:</strong> ${notification.duration} minutes</p>
+                    <p><strong>Total Payment:</strong> $${notification.total_payment}</p>
+                    <p><strong>Reason:</strong> ${notification.reason}</p>
+                </div>
+            `;
+
+            close.onclick = function () {
+                modal.style.display = 'none';
+            }
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        };
+
+        // Handle errors
+        websocket.onerror = function (error) {
+            console.error('WebSocket Error:', error);
+        };
+
+        websocket.onclose = function () {
+            console.log('Disconnected from WebSocket server');
+        };
+    </script>
+</body>
+
+</html>
