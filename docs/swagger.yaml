@@ -45,7 +45,7 @@ definitions:
       user_id:
         type: string
     type: object
-host: localhost:3000
+host: 192.168.100.192:3000
 info:
   contact: {}
   title: Airline API
@@ -164,6 +164,16 @@ paths:
         in: query
         name: status
         type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:

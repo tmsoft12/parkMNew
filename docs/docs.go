@@ -189,6 +189,20 @@ const docTemplate = `{
                         "description": "Car status (Inside, Exited)",
                         "name": "status",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -344,7 +358,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
-	Host:             "localhost:3000",
+	Host:             "192.168.100.192:3000",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Airline API",

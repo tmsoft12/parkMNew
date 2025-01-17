@@ -8,12 +8,14 @@ import (
 
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("user")
+
 	if cookie == "" {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
 			"message": "unauthorized",
 		})
 	}
+
 	return c.Next()
 }
 

@@ -18,4 +18,5 @@ func Init(app *fiber.App) {
 	cars.Get("/searchcar", carcontrol.SearchCar)
 	cars.Put("/updatecar/:plate", carcontrol.UpdateCar)
 	cars.Get("/ws/notification", websocket.New(carcontrol.Ws))
+
 }

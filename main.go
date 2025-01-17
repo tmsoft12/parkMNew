@@ -13,9 +13,8 @@ import (
 )
 
 // @title Airline API
-// @host localhost:3000
+// @host 192.168.100.192:3000
 // @BasePath /api/v1
-
 func main() {
 	database.ConnectDB()
 	app := fiber.New()

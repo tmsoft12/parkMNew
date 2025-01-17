@@ -1,7 +1,6 @@
 package carcontrol
 
 import (
-	"log"
 	"math"
 	"park/database"
 	modelscar "park/models/modelsCar"
@@ -113,10 +112,10 @@ func GetCars(c *fiber.Ctx) error {
 		query = query.Where("park_no = ?", parkno)
 	}
 
-	log.Println("Query Params - Page:", page, "Limit:", limit, "Parkno:", parkno)
-
 	query.Count(&totalCount)
-	log.Println("Total Count:", totalCount)
+	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
+	hasNext := page < totalPages
+	hasPrev := page > 1
 
 	offset := (page - 1) * limit
 	query.Order("id desc").Limit(limit).Offset(offset).Find(&cars)
@@ -125,11 +124,13 @@ func GetCars(c *fiber.Ctx) error {
 		cars = []modelscar.Car_Model{}
 	}
 
-	return c.Status(200).JSON(GetCarsResponse{
-		Cars:       cars,
-		Page:       page,
-		Limit:      limit,
-		TotalCount: totalCount,
+	return c.Status(200).JSON(fiber.Map{
+		"cars":       cars,
+		"page":       page,
+		"limit":      limit,
+		"totalPages": totalPages,
+		"hasNext":    hasNext,
+		"hasPrev":    hasPrev,
 	})
 }
 
@@ -235,6 +236,8 @@ func mapCarData(source, target *modelscar.Car_Model, endTime string) {
 // @Param car_number query string false "Car plate number"
 // @Param parkno query string false "Parking spot number"
 // @Param status query string false "Car status (Inside, Exited)"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Number of items per page" default(5)
 // @Success 200 {object} GetCarsResponse
 // @Failure 400 {object} ErrorResponse
 // @Router /searchcar [get]
@@ -245,6 +248,22 @@ func SearchCar(c *fiber.Ctx) error {
 	carNumber := c.Query("car_number")
 	parkNo := c.Query("parkno")
 	status := c.Query("status")
+	pageStr := c.Query("page", "1")
+	limitStr := c.Query("limit", "5")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid page number",
+		})
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid limit number",
+		})
+	}
 
 	query := database.DB.Model(&modelscar.Car_Model{})
 
@@ -262,15 +281,18 @@ func SearchCar(c *fiber.Ctx) error {
 
 	query.Count(&totalCount)
 
-	if err := query.Order("id desc").Find(&cars).Error; err != nil {
+	offset := (page - 1) * limit
+	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Error retrieving cars",
 			"error":   err.Error(),
 		})
 	}
 
-	return c.Status(200).JSON(fiber.Map{
-		"cars":        cars,
-		"total_count": totalCount,
+	return c.Status(200).JSON(GetCarsResponse{
+		Cars:       cars,
+		Page:       page,
+		Limit:      limit,
+		TotalCount: totalCount,
 	})
 }
