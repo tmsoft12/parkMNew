@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -109,6 +109,70 @@
             console.log('Disconnected from WebSocket server');
         };
     </script>
+</body>
+
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+    <script>
+        // Bu fonksiyon, form verilerini AJAX ile backend'e gönderir
+        function loginUser(event) {
+            event.preventDefault();  // Sayfanın yenilenmesini engeller
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const loginData = {
+                username: username,
+                password: password
+            };
+
+            fetch('http://localhost:3000/api/v1/login', {  // Backend'inizin URL'si
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Login successful') {
+                        alert('Login successful!');
+                        // Başarıyla giriş yapıldığında yapılacak işlemler (örneğin, kullanıcıyı yönlendirme)
+                    } else {
+                        alert('Login failed: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Login failed: ' + error.message);
+                });
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Login Test</h2>
+    <form onsubmit="loginUser(event)">
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <button type="submit">Login</button>
+        </div>
+    </form>
 </body>
 
 </html>

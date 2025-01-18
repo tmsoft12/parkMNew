@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	modelscar "park/models/modelsCar"
+	modelsuser "park/models/modelsUser"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -28,7 +29,9 @@ func ConnectDB() {
 		log.Fatal("Failed to migrate models:", err)
 	}
 	err = database.AutoMigrate(
-		&modelscar.Car_Model{})
+		&modelscar.Car_Model{},
+		&modelsuser.User{},
+	)
 	if err != nil {
 		log.Fatal("Failed to migrate models:", err)
 	}

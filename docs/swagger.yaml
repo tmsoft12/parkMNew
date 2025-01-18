@@ -45,6 +45,27 @@ definitions:
       user_id:
         type: string
     type: object
+  modelsuser.User:
+    properties:
+      id:
+        type: integer
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  usercontrol.LoginInput:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
 host: 192.168.100.192:3000
 info:
   contact: {}
@@ -145,6 +166,105 @@ paths:
       summary: Get a car by ID
       tags:
       - cars
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and starts a session.
+      parameters:
+      - description: User Login Data
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/usercontrol.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Login successful'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'message: Bad Request'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'message: Invalid credentials'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login User
+      tags:
+      - User
+  /logout:
+    post:
+      description: Ends the session of a logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Logout successful'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout User
+      tags:
+      - User
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user and stores their hashed password.
+      parameters:
+      - description: User Registration Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'message: User Created'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'message: Bad Request'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register User
+      tags:
+      - User
   /searchcar:
     get:
       consumes:

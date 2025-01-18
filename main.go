@@ -29,5 +29,6 @@ func main() {
 	go carcontrol.HandleMessages()
 
 	routes.Init(app)
+
 	app.Listen(":3000")
 }
