@@ -1,8 +1,14 @@
 package modelsuser
 
+import "gorm.io/gorm"
+
 type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
+	*gorm.Model
+	Id        int    `json:"id"`
+	Username  string `json:"username"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Password  string `json:"password"`
+	IsActive  bool   `json:"isActive"`
+	Role      string `json:"role"`
 }

@@ -46,15 +46,6 @@ definitions:
         type: string
     type: object
   modelsuser.User:
-    properties:
-      id:
-        type: integer
-      password:
-        type: string
-      role:
-        type: string
-      username:
-        type: string
     type: object
   usercontrol.LoginInput:
     properties:
@@ -65,6 +56,25 @@ definitions:
     required:
     - password
     - username
+    type: object
+  usercontrol.UserResponse:
+    properties:
+      created_at:
+        type: string
+      firstname:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      lastname:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
     type: object
 host: 192.168.100.192:3000
 info:
@@ -170,7 +180,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticates a user and starts a session.
+      description: Authenticates a user and returns a JWT token in a cookie.
       parameters:
       - description: User Login Data
         in: body
@@ -210,7 +220,8 @@ paths:
       - User
   /logout:
     post:
-      description: Ends the session of a logged-in user.
+      description: Ends the session of a logged-in user by deleting the JWT token
+        cookie.
       produces:
       - application/json
       responses:
@@ -275,6 +286,14 @@ paths:
       - description: Car plate number
         in: query
         name: car_number
+        type: string
+      - description: Enter time (YYYY-MM-DD)
+        in: query
+        name: enter_time
+        type: string
+      - description: End time (YYYY-MM-DD)
+        in: query
+        name: end_time
         type: string
       - description: Parking spot number
         in: query
@@ -349,4 +368,25 @@ paths:
       summary: Update a car by plate number
       tags:
       - cars
+  /users:
+    get:
+      description: Retrieves a list of all users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/usercontrol.UserResponse'
+            type: array
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List Users
+      tags:
+      - User
 swagger: "2.0"

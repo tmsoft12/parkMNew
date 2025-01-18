@@ -234,6 +234,8 @@ func mapCarData(source, target *modelscar.Car_Model, endTime string) {
 // @Accept  json
 // @Produce  json
 // @Param car_number query string false "Car plate number"
+// @Param enter_time query string false "Enter time (YYYY-MM-DD)"
+// @Param end_time query string false "End time (YYYY-MM-DD)"
 // @Param parkno query string false "Parking spot number"
 // @Param status query string false "Car status (Inside, Exited)"
 // @Param page query int false "Page number" default(1)
@@ -246,6 +248,8 @@ func SearchCar(c *fiber.Ctx) error {
 	var totalCount int64
 
 	carNumber := c.Query("car_number")
+	enterTime := c.Query("enter_time")
+	endTime := c.Query("end_time")
 	parkNo := c.Query("parkno")
 	status := c.Query("status")
 	pageStr := c.Query("page", "1")
@@ -270,16 +274,35 @@ func SearchCar(c *fiber.Ctx) error {
 	if carNumber != "" {
 		query = query.Where("car_number LIKE ?", "%"+carNumber+"%")
 	}
-
+	if enterTime != "" {
+		if _, err := time.Parse("2006-01-02", enterTime); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"message": "Invalid enter_time format. Use YYYY-MM-DD.",
+			})
+		}
+		query = query.Where("DATE(start_time) = ?", enterTime)
+	}
+	if endTime != "" {
+		if _, err := time.Parse("2006-01-02", endTime); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"message": "Invalid end_time format. Use YYYY-MM-DD.",
+			})
+		}
+		query = query.Where("DATE(end_time) = ?", endTime)
+	}
 	if parkNo != "" {
 		query = query.Where("park_no = ?", parkNo)
 	}
-
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
 
-	query.Count(&totalCount)
+	if err := query.Count(&totalCount).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Error counting cars",
+			"error":   err.Error(),
+		})
+	}
 
 	offset := (page - 1) * limit
 	if err := query.Order("id desc").Limit(limit).Offset(offset).Find(&cars).Error; err != nil {

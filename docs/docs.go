@@ -160,7 +160,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Authenticates a user and starts a session.",
+                "description": "Authenticates a user and returns a JWT token in a cookie.",
                 "consumes": [
                     "application/json"
                 ],
@@ -224,7 +224,7 @@ const docTemplate = `{
         },
         "/logout": {
             "post": {
-                "description": "Ends the session of a logged-in user.",
+                "description": "Ends the session of a logged-in user by deleting the JWT token cookie.",
                 "produces": [
                     "application/json"
                 ],
@@ -331,6 +331,18 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Enter time (YYYY-MM-DD)",
+                        "name": "enter_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End time (YYYY-MM-DD)",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Parking spot number",
                         "name": "parkno",
                         "in": "query"
@@ -431,6 +443,38 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users": {
+            "get": {
+                "description": "Retrieves a list of all users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "List Users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/usercontrol.UserResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "message: Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -504,21 +548,7 @@ const docTemplate = `{
             }
         },
         "modelsuser.User": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "usercontrol.LoginInput": {
             "type": "object",
@@ -528,6 +558,35 @@ const docTemplate = `{
             ],
             "properties": {
                 "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "usercontrol.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 },
                 "username": {

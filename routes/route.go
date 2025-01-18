@@ -21,7 +21,7 @@ func Init(app *fiber.App) {
 	cars.Get("/ws/notification", websocket.New(carcontrol.Ws))
 
 	user := app.Group("/api/v1")
-	user.Post("/createuser", usercontrol.Register)
+	user.Post("/register", usercontrol.Register)
 	user.Post("/login", usercontrol.Login)
 	user.Post("/logout", usercontrol.Logout)
 }
