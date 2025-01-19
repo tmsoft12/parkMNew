@@ -3,23 +3,29 @@ package util
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreateJWT(userID int, username string) (string, error) {
+func CreateJWT(userID int, username string, role string, parkno string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	secretKey := os.Getenv("SECRET_KEY_JWT")
-	fmt.Println(secretKey)
-
 	claims := jwt.MapClaims{
-		"user_id":  userID,
+		"user_id":  strconv.Itoa(userID), // userID'yi string'e dönüştür
 		"username": username,
+		"role":     role,
+		"parkno":   parkno,
 		"exp":      expirationTime.Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secretKey))
+	signedToken, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return signedToken, nil
 }

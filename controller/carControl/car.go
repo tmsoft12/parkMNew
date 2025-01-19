@@ -31,7 +31,6 @@ const defaultImageURL = "example.com"
 // @Router /createcar [post]
 func CreateCar(c *fiber.Ctx) error {
 	var car modelscar.Car_Model
-
 	now := time.Now().Format(timeFormat)
 	parkno := c.Query("parkno")
 	car.Start_time = now
@@ -93,7 +92,7 @@ func GetCars(c *fiber.Ctx) error {
 	var totalCount int64
 	pageStr := c.Query("page", "1")
 	limitStr := c.Query("limit", "5")
-	parkno := c.Query("parkno")
+	parkno := c.Locals("parkno")
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {

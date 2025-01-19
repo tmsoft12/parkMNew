@@ -36,7 +36,7 @@ type UserResponse struct {
 // @Success      201 {object} map[string]string "message: User Created"
 // @Failure      400 {object} map[string]string "message: Bad Request"
 // @Failure      500 {object} map[string]string "message: Internal Server Error"
-// @Router       /register [post]
+// @Router       /auth/register [post]
 func Register(c *fiber.Ctx) error {
 	var user modelsuser.User
 
@@ -69,30 +69,47 @@ func Register(c *fiber.Ctx) error {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        credentials body LoginInput true "User Login Data"
+//
+//	@Param        credentials body LoginInput true "User Login Data" {
+//	  "username": "exampleUser",
+//	  "password": "examplePassword",
+//	  "parkno": "P4"
+//	}
+//
 // @Success      200 {object} map[string]string "message: Login successful"
 // @Failure      400 {object} map[string]string "message: Bad Request"
 // @Failure      401 {object} map[string]string "message: Invalid credentials"
 // @Failure      500 {object} map[string]string "message: Internal Server Error"
-// @Router       /login [post]
+// @Router       /auth/login [post]
 func Login(c *fiber.Ctx) error {
-	var loginInput LoginInput
+	var loginInput struct {
+		LoginInput
+		ParkNo string `json:"parkno" validate:"required"`
+	}
 	if err := c.BodyParser(&loginInput); err != nil {
-		return c.Status(400).JSON(fiber.Map{"message": "Bad Request", "error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+		})
 	}
 
 	var user modelsuser.User
 	if err := database.DB.Where("username = ?", loginInput.Username).First(&user).Error; err != nil {
-		return c.Status(401).JSON(fiber.Map{"message": "Invalid credentials"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Invalid credentials",
+		})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password)); err != nil {
-		return c.Status(401).JSON(fiber.Map{"message": "Invalid credentials"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Invalid credentials",
+		})
 	}
 
-	token, err := util.CreateJWT(user.Id, user.Username)
+	token, err := util.CreateJWT(user.Id, user.Username, user.Role, loginInput.ParkNo)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"message": "Error creating JWT", "error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error creating JWT",
+		})
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -101,7 +118,7 @@ func Login(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		SameSite: "Strict",
 		Path:     "/",
-		MaxAge:   0,
+		MaxAge:   86400,
 	})
 
 	return c.JSON(fiber.Map{"message": "Login successful"})
@@ -113,7 +130,7 @@ func Login(c *fiber.Ctx) error {
 // @Produce      json
 // @Success      200 {object} map[string]string "message: Logout successful"
 // @Failure      500 {object} map[string]string "message: Internal Server Error"
-// @Router       /logout [post]
+// @Router      /auth/logout [post]
 func Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
@@ -133,7 +150,7 @@ func Logout(c *fiber.Ctx) error {
 // @Produce      json
 // @Success      200 {array} UserResponse
 // @Failure      500 {object} map[string]string "message: Internal Server Error"
-// @Router       /users [get]
+// @Router       /auth/users [get]
 func ListUsers(c *fiber.Ctx) error {
 	var users []modelsuser.User
 	if err := database.DB.Find(&users).Error; err != nil {
@@ -155,4 +172,60 @@ func ListUsers(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(userResponses)
+}
+
+// @Summary      Get current user information
+// @Description  Retrieves the current user's username, role, and user ID from the JWT token.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} map[string]interface{} "Returns user information"
+// @Failure      400 {object} map[string]string "message: Bad Request - Missing data from middleware"
+// @Failure      401 {object} map[string]string "message: Unauthorized - Invalid token"
+// @Failure      500 {object} map[string]string "message: Internal Server Error - Missing data from middleware"
+// @Router       /auth/me [get]
+func Me(c *fiber.Ctx) error {
+	usernameVal := c.Locals("username")
+	roleVal := c.Locals("role")
+	userIDVal := c.Locals("user_id")
+	parkno := c.Locals("parkno")
+
+	if usernameVal == nil || roleVal == nil || userIDVal == nil || parkno == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Missing data from middleware",
+		})
+	}
+
+	username, ok := usernameVal.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid username type",
+		})
+	}
+	park, ok := parkno.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid parkno type",
+		})
+	}
+	role, ok := roleVal.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid role type",
+		})
+	}
+
+	userID, ok := userIDVal.(string)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal Server Error - Invalid user ID type",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"username": username,
+		"role":     role,
+		"user_id":  userID,
+		"parkno":   park,
+	})
 }
