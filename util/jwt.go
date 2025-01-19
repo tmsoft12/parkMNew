@@ -1,6 +1,8 @@
 package util
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -8,7 +10,9 @@ import (
 
 func CreateJWT(userID int, username string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
-	secretKey := "supersecretkey"
+
+	secretKey := os.Getenv("SECRET_KEY_JWT")
+	fmt.Println(secretKey)
 
 	claims := jwt.MapClaims{
 		"user_id":  userID,

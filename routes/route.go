@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"os"
 	carcontrol "park/controller/carControl"
 	usercontrol "park/controller/userControl"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func Init(app *fiber.App) {
+	plate := os.Getenv("IMAGE_URL")
+	app.Static("/plate", plate)
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})

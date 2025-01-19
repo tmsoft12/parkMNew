@@ -1,7 +1,9 @@
 package carcontrol
 
 import (
+	"fmt"
 	"math"
+	"os"
 	"park/database"
 	modelscar "park/models/modelsCar"
 	"strconv"
@@ -123,7 +125,12 @@ func GetCars(c *fiber.Ctx) error {
 	if len(cars) == 0 {
 		cars = []modelscar.Car_Model{}
 	}
+	ip := os.Getenv("HOST")
+	port := os.Getenv("PORT")
 
+	for i := range cars {
+		cars[i].Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, cars[i].Image_Url)
+	}
 	return c.Status(200).JSON(fiber.Map{
 		"cars":       cars,
 		"page":       page,
@@ -153,6 +160,11 @@ func GetCar(c *fiber.Ctx) error {
 			"message": "Car not found",
 		})
 	}
+	ip := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+
+	car.Image_Url = fmt.Sprintf("http://%s:%s/plate/%s", ip, port, car.Image_Url)
+
 	c.Status(200)
 	return c.JSON(car)
 }
