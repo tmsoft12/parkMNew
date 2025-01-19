@@ -81,6 +81,75 @@ info:
   contact: {}
   title: Airline API
 paths:
+  /admin/user:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user and stores their hashed password.
+      parameters:
+      - description: User Registration Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/modelsuser.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'message: User Created'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'message: Bad Request'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create User
+      tags:
+      - Admin
+  /admin/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves user details by their ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/modelsuser.User'
+        "404":
+          description: 'message: User not found'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'message: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get User by ID
+      tags:
+      - Admin
   /auth/login:
     post:
       consumes:

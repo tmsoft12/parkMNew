@@ -98,6 +98,9 @@ func Login(c *fiber.Ctx) error {
 			"message": "Invalid credentials",
 		})
 	}
+	if !user.IsActive {
+		return c.Status(401).JSON("is not active")
+	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginInput.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

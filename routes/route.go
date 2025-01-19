@@ -2,8 +2,9 @@ package routes
 
 import (
 	"os"
+	authconrol "park/controller/authConrol"
 	carcontrol "park/controller/carControl"
-	usercontrol "park/controller/userControl"
+	usercontroller "park/controller/userController"
 	"park/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,17 +15,13 @@ func Init(app *fiber.App) {
 	plate := os.Getenv("IMAGE_URL")
 	app.Static("/plate", plate)
 
-	user := app.Group("/api/v1/auth")
-	user.Post("/register", usercontrol.Register)
-	user.Post("/login", usercontrol.Login)
-	user.Post("/logout", usercontrol.Logout)
-	user.Get("/users", usercontrol.ListUsers)
+	auth := app.Group("/api/v1/auth")
+	auth.Post("/register", authconrol.Register)
+	auth.Post("/login", authconrol.Login)
+	auth.Post("/logout", authconrol.Logout)
 	app.Use(middleware.ExtractParkNoMiddleware)
 
-	user.Get("me", usercontrol.Me)
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+	auth.Get("/me", authconrol.Me)
 
 	cars := app.Group("/api/v1", middleware.ExtractParkNoMiddleware)
 
@@ -34,4 +31,9 @@ func Init(app *fiber.App) {
 	cars.Get("/searchcar", carcontrol.SearchCar)
 	cars.Put("/updatecar/:plate", carcontrol.UpdateCar)
 	cars.Get("/ws/notification", websocket.New(carcontrol.Ws))
+
+	admin := app.Group("/api/v1/admin")
+	admin.Post("/user", usercontroller.CreateUser)
+	admin.Get("/user/:id", usercontroller.GetUserByID)
+
 }

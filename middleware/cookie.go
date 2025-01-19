@@ -34,11 +34,6 @@ func ExtractParkNoMiddleware(c *fiber.Ctx) error {
 		})
 	}
 
-	println("Debug - Claims Content:")
-	for key, value := range claims {
-		println(key, ":", value)
-	}
-
 	username, ok := claims["username"].(string)
 	if !ok || username == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
